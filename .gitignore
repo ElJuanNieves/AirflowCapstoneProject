@@ -1,1 +1,25 @@
 .env
+
+# Airflow logs
+logs/
+*.log
+airflow.log
+scheduler.log
+webserver.log
+worker.log
+dag_processor.log
+
+# Airflow database
+airflow.db
+airflow.db-shm
+airflow.db-wal
+
+# Airflow temporary files
+airflow_tmp/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.cache/
