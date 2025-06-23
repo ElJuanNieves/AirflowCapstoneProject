@@ -19,3 +19,4 @@
 {"timestamp":"2025-06-23T16:34:19.946301","level":"info","event":"Filling up the DagBag from /home/airflow/.local/lib/python3.12/site-packages/airflow/example_dags/tutorial_taskflow_api_virtualenv.py","logger":"airflow.models.dagbag.DagBag"}
 {"timestamp":"2025-06-23T16:34:50.748230","level":"info","event":"Filling up the DagBag from /home/airflow/.local/lib/python3.12/site-packages/airflow/example_dags/tutorial_taskflow_api_virtualenv.py","logger":"airflow.models.dagbag.DagBag"}
 {"timestamp":"2025-06-23T16:35:21.366558","level":"info","event":"Filling up the DagBag from /home/airflow/.local/lib/python3.12/site-packages/airflow/example_dags/tutorial_taskflow_api_virtualenv.py","logger":"airflow.models.dagbag.DagBag"}
+{"timestamp":"2025-06-23T16:35:52.106761","level":"info","event":"Filling up the DagBag from /home/airflow/.local/lib/python3.12/site-packages/airflow/example_dags/tutorial_taskflow_api_virtualenv.py","logger":"airflow.models.dagbag.DagBag"}
