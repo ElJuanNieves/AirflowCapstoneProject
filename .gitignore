@@ -9,6 +9,11 @@ webserver.log
 worker.log
 dag_processor.log
 
+# Airflow configuration (contains sensitive data like fernet key)
+airflow.cfg
+config/airflow.cfg
+*.cfg
+
 # Airflow database
 airflow.db
 airflow.db-shm
