@@ -28,3 +28,11 @@ __pycache__/
 .Python
 *.so
 .cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE files
+.idea/
