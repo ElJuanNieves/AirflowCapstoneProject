@@ -8,7 +8,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.operators.empty import EmptyOperator
-from airflow.providers.standard.operators.python import PythonOperator, BranchPythonOperator
+from airflow.providers.standard.operators.python import PythonOperator, BranchPythonOperator, get_current_context
 from airflow.utils.trigger_rule import TriggerRule
 
 config = {
@@ -17,8 +17,11 @@ config = {
     'dag_id_3': {'schedule_interval': None, "start_date": datetime(2018, 11, 11), 'database': 'db3'}
 }
 
-def print_info(dag_id, database, **kwargs):
+def print_info(dag_id, database, **context):
     print(f"{dag_id} start processing tables in database: {database}")
+    print("*********************************************************")
+    exec_date = datetime.fromisoformat(context['ts'])
+    print(f"Execution date: {exec_date}, type: {type(exec_date)}")
 
 def check_table_exist():
     return 'insert_new_row' if True else 'create_table'
@@ -37,7 +40,7 @@ for dag_id, params in config.items():
         print_info_task = PythonOperator(
             task_id='print_info',
             python_callable=print_info,
-            op_kwargs={'dag_id': dag_id, 'database': params['database']}
+            op_kwargs={'dag_id': dag_id, 'database': params['database']},
         )
 
         get_user = BashOperator(

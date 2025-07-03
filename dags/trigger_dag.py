@@ -9,7 +9,7 @@ from airflow import DAG
 from airflow.decorators import task, task_group
 from airflow.models import Variable
 from airflow.providers.standard.operators.bash import BashOperator
-from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator, get_current_context
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 from airflow.providers.standard.sensors.filesystem import FileSensor
@@ -17,10 +17,12 @@ from typing_extensions import MutableSet
 
 
 @task
-def store_date(ts, ti):
-    print("Logs *************************************************************************")
+def store_date():
+    context = get_current_context()
+    ts = context['ts']
     dt = datetime.fromisoformat(ts)
-    ti.xcom_push(key='jobs_dag_date', value=dt)
+    print(f"[store_date] Parsed ts: {ts} => {dt}")
+    context['ti'].xcom_push(key='jobs_dag_date', value=dt)
     return dt
 
 def get_ts(context, dag_run_obj):
@@ -29,12 +31,11 @@ def get_ts(context, dag_run_obj):
     return dag_run_obj
 
 
-def get_execution_date(cont):
-    ti = cont['ti']
-    result = ti.xcom_pull(task_ids='trigger_target.store_trigger_date', key='jobs_dag_date')
-    print(" ********************************* Pulled execution_date from XCom:", result, type(result))
-    return {"execution_date": result}
-
+def get_execution_date(current_execution_date, **context):
+    ti = context['ti']
+    result = ti.xcom_pull(task_ids='trigger_target.store_date', key='jobs_dag_date')
+    print("Pulled execution_date from XCom:", result, type(result))
+    return result
 
 def print_xcom_result(**context):
     """Prints XCom message and the execution context."""
@@ -66,6 +67,7 @@ with DAG(
             task_id='trigger_target_dag',
             trigger_dag_id='dag_id_1',
             wait_for_completion=False,
+            logical_date="{{ ts }}"
         )
 
         store_trigger_date = store_date()
@@ -94,7 +96,7 @@ with DAG(
     def process_results():
         remove_file = BashOperator(
             task_id='remove_trigger_file',
-            bash_command='rm {{ var.value.trigger_path }}'
+            bash_command='rm /opt/airflow/data/{{ var.value.trigger_path }}'
         )
 
         create_completion_file = BashOperator(
