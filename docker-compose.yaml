@@ -69,7 +69,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-slack-sdk}
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
@@ -119,9 +119,23 @@ services:
       start_period: 30s
     restart: always
 
+  vault:
+    image: hashicorp/vault:latest
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_API_ADDR=http://127.0.0.1:8200
+      - VAULT_ADDRESS=http://127.0.0.1:8200
+      - VAULT_DEV_ROOT_TOKEN_ID=ZyrP7NtNw0hbLUqu7N3IlTdO
+    expose:
+      - 8200
+    ports:
+      - 8200:8200
+    command: server -dev
+
   airflow-apiserver:
     <<: *airflow-common
     command: api-server
+    env_file: .env
     ports:
       - "8080:8080"
     healthcheck:
@@ -139,6 +153,7 @@ services:
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
+    env_file: .env
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
       interval: 30s
@@ -154,6 +169,7 @@ services:
   airflow-dag-processor:
     <<: *airflow-common
     command: dag-processor
+    env_file: .env
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
       interval: 30s
@@ -169,6 +185,7 @@ services:
   airflow-worker:
     <<: *airflow-common
     command: celery worker
+    env_file: .env
     healthcheck:
       # yamllint disable rule:line-length
       test:
@@ -194,6 +211,7 @@ services:
   airflow-triggerer:
     <<: *airflow-common
     command: triggerer
+    env_file: .env
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
       interval: 30s
@@ -209,6 +227,7 @@ services:
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
+    env_file: .env
     # yamllint disable rule:line-length
     command:
       - -c
