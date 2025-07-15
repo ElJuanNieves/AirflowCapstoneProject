@@ -12,7 +12,7 @@ from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.operators.python import PythonOperator, get_current_context
 from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
-from airflow.providers.standard.sensors.filesystem import FileSensorAsync
+from airflow.providers.standard.sensors.filesystem import FileSensor
 from typing_extensions import MutableSet
 
 
@@ -78,11 +78,12 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    wait_for_file = FileSensorAsync(
+    wait_for_file = FileSensor(
         task_id='wait_for_trigger_file',
         filepath = Variable.get("trigger_path"),
         poke_interval=10,
         timeout=300,
+        deferrable=True,
         mode='poke',
         fs_conn_id='fs_default'
     )
