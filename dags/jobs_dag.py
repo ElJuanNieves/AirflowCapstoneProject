@@ -108,7 +108,7 @@ def check_table_exists(**kwargs):
         );
     """
     result = hook.get_first(query)
-    return 'insert_new_row' if result and result[0] else 'create_table'
+    return 'skip_create_table' if result and result[0] else 'create_table'
 
 def push_message(**kwargs):
     """
@@ -142,6 +142,8 @@ for dag_id, params in config.items():
             do_xcom_push=True
         )
 
+        skip_create = EmptyOperator(task_id='skip_create_table')
+
         # Task 3: Branch based on table existence
         # Routes to either table creation or direct data insertion
         check = BranchPythonOperator(
@@ -167,7 +169,8 @@ for dag_id, params in config.items():
         # Generates random data and formats it for database insertion
         prepare_data = PythonOperator(
             task_id='prepare_data',
-            python_callable=prepare_insert_values
+            python_callable=prepare_insert_values,
+            trigger_rule='one_success'
         )
 
         # Task 6: Insert data into the table
@@ -189,9 +192,9 @@ for dag_id, params in config.items():
         # Define task dependencies
         # Linear flow with conditional branching for table creation
         print_info_task >> get_user >> check
-        check >> create >> prepare_data >> insert  # Path when table doesn't exist
-        check >> prepare_data >> insert             # Path when table exists
-        insert >> query
+        check >> create
+        check >> skip_create
+        [create, skip_create] >> prepare_data >> insert >> query
 
     # Register DAG in global namespace for Airflow discovery
     globals()[dag_id] = dag
